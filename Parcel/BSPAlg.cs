@@ -53,15 +53,15 @@ namespace ProjVan1
             redoCounter++;
             
             bool t = PostProcess(); 
-            if (t == true && redoCounter < 1000) { RUN_BSP_ALG(); }
+            if (t == true && redoCounter < 100) { RUN_BSP_ALG(); }
         }
 
         public List<Curve> GetBspResults() { return FCURVE; }
 
-        public Curve getIntxCrv(Curve crv)
+        public List<Curve> getIntxCrv(Curve crv)
         {
             //only take the part of a curve inside the site region
-            Curve retCrv = null;
+            List<Curve> retCrv=new List<Curve>();
             Curve[] intxCrv = Curve.CreateBooleanIntersection(SiteCrv, crv, 0.01);
             if (intxCrv.Length > 0)
             {
@@ -76,7 +76,14 @@ namespace ProjVan1
                         maxCrv = intxCrv[i];
                     }
                 }
-                return maxCrv;
+                for(int i=0; i<intxCrv.Length; i++)
+                {
+                    if(intxCrv[i]!= null)
+                    {
+                        retCrv.Add(intxCrv[i]);
+                    }                    
+                }                
+               // return maxCrv;
             }
             return retCrv;
         }
@@ -108,19 +115,48 @@ namespace ProjVan1
             // returned = 2 bounding box: find the portion of curve it intersects with
             PolylineCurve crv1 = new PolylineCurve(polyPts[0]);
             PolylineCurve crv2 = new PolylineCurve(polyPts[1]);
-            Curve fcrv1 = getIntxCrv(crv1);
-            Curve fcrv2 = getIntxCrv(crv2);
-
+            //Curve fcrv1 = getIntxCrv(crv1); // single crv from intx
+            //Curve fcrv2 = getIntxCrv(crv2); // single crv from intx
+            List<Curve> crvs1= getIntxCrv(crv1);
+            List<Curve> crvs2 = getIntxCrv(crv2);
             counter++;
             if (counter < 3)
             {
-                if (fcrv1 != null) { recSplit(fcrv1, counter); }
-                if (fcrv2 != null) { recSplit(fcrv2, counter); }
+                //if (fcrv1 != null) { recSplit(fcrv1, counter); } //singe return from intersection
+                //if (fcrv2 != null) { recSplit(fcrv2, counter); } //singe return from intersection
+                for(int i=0; i<crvs1.Count; i++)
+                {
+                    if (crvs1[i] != null)
+                    {
+                        recSplit(crvs1[i], counter);
+                    }
+                }
+                for (int i = 0; i < crvs2.Count; i++)
+                {
+                    if (crvs2[i] != null)
+                    {
+                        recSplit(crvs2[i], counter);
+                    }
+                }
             }
             else
             {
-                if (fcrv1 != null) { FCURVE.Add(fcrv1); }
-                if (fcrv2 != null) { FCURVE.Add(fcrv2); }
+                // if (fcrv1 != null) { FCURVE.Add(fcrv1); } //single curve from intersection
+                // if (fcrv2 != null) { FCURVE.Add(fcrv2); } //single curve from intersection
+                for (int i = 0; i < crvs1.Count; i++)
+                {
+                    if (crvs1[i] != null)
+                    {
+                        FCURVE.Add(crvs1[i]);
+                    }
+                }
+                for (int i = 0; i < crvs2.Count; i++)
+                {
+                    if (crvs2[i] != null)
+                    {
+                        FCURVE.Add(crvs2[i]);
+                    }
+                }
             }
             
         }
