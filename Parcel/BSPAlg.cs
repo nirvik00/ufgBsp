@@ -15,6 +15,8 @@ namespace ProjVan1
         List<Curve> FCURVE = new List<Curve>();
         List<Line> partitionLines = new List<Line>();
         Curve SiteCrv;
+        int redoCounter = 0;
+
         Random rnd = new Random();
 
         public BSPAlg(Curve crv)
@@ -110,6 +112,8 @@ namespace ProjVan1
                 if (fcrv1 != null) { FCURVE.Add(fcrv1); }
                 if (fcrv2 != null) { FCURVE.Add(fcrv2); }
             }
+            bool t=PostProcess(); // optimize the parcel generation strategy
+            if (t == true) { start(); }
         }
 
         public List<Point3d[]> verSplit(Point3d[] T)
@@ -156,7 +160,9 @@ namespace ProjVan1
             return pts;
         }
 
-        public void postProcess() {
+        public bool PostProcess() {
+            double MINARRATIO = 0.2;
+
             bool REDO = false;
             double ar = 0.0;
             for (int i = 0; i < FCURVE.Count; i++)
@@ -168,17 +174,52 @@ namespace ProjVan1
                 catch (Exception) { }
             }
             double meanAr = ar / FCURVE.Count();
-            double minArPer = 0.2 * meanAr;
+            double minArPer = MINARRATIO * meanAr;
             int j = 0;
-            for(int i=0; i<FCURVE.Count; i++)
+            // condition 1 
+            for (int i=0; i<FCURVE.Count; i++)
             {
                 double Ar = Rhino.Geometry.AreaMassProperties.Compute(FCURVE[i]).Area;
                 if (Ar < minArPer)
                 {
                     REDO = true;
+                    MSG += "\ncondition. 1:" + redoCounter.ToString();
+                    redoCounter++;
                     break;
                 }
             }
+            
+            for(int i=0; i<FCURVE.Count; i++)
+            {
+                var T = FCURVE[i].GetBoundingBox(true);
+                var a = T.Min;
+                var c = T.Max;
+                var b = new Point3d(c.X, a.Y, 0);
+                var d = new Point3d(a.X, c.Y, 0);
+                Point3d[] pts = { a, b, c, d, a };
+                PolylineCurve crv = new PolylineCurve(pts);
+                double verDi = a.DistanceTo(d);
+                double horDi = a.DistanceTo(b);
+                // condition 2
+                if (horDi/verDi <0.2 || verDi / horDi < 0.2)
+                {
+                    REDO = true;
+                    MSG += "\ncondition. 2:" + redoCounter.ToString();
+                    redoCounter++;
+                    break;
+                }
+                double ArBB = Rhino.Geometry.AreaMassProperties.Compute(crv).Area; // area of bounding box
+                double ArCrv = Rhino.Geometry.AreaMassProperties.Compute(FCURVE[i]).Area; // actual area of the curve
+                // condition 3
+                if (ArCrv / ArBB <0.2)
+                {
+                    REDO = true;
+                    MSG += "\ncondition. 3:" + redoCounter.ToString();
+                    redoCounter++;
+                    break;
+                }
+            }
+            return REDO;
         }
     }
 }
