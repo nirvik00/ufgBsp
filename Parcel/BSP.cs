@@ -33,7 +33,7 @@ namespace ProjVan1.Parcel
             if(!DA.GetData(0, ref SiteCrv)) return;
 
             BSPAlg bspalg = new BSPAlg(SiteCrv);
-            bspalg.start();
+            bspalg.RUN_BSP_ALG();
             List<Curve> crvs = bspalg.GetBspResults();
             DA.SetDataList(0, crvs);
 

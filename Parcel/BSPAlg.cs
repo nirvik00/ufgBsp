@@ -40,10 +40,17 @@ namespace ProjVan1
             return partitionLines;
         }
 
-        public void start()
+        public void RUN_BSP_ALG()
         {
+            //run the bsp algorithm
             Curve crv = SiteCrv.DuplicateCurve();
             recSplit(crv, 0);
+
+            // RECURSIVELY optimize the parcel generation strategy
+            redoCounter++;
+            FCURVE = new List<Curve>();
+            bool t = PostProcess(); 
+            if (t == true && redoCounter < 10) { RUN_BSP_ALG(); }
         }
 
         public List<Curve> GetBspResults() { return FCURVE; }
@@ -112,8 +119,7 @@ namespace ProjVan1
                 if (fcrv1 != null) { FCURVE.Add(fcrv1); }
                 if (fcrv2 != null) { FCURVE.Add(fcrv2); }
             }
-            bool t=PostProcess(); // optimize the parcel generation strategy
-            if (t == true) { start(); }
+            
         }
 
         public List<Point3d[]> verSplit(Point3d[] T)
@@ -184,7 +190,6 @@ namespace ProjVan1
                 {
                     REDO = true;
                     MSG += "\ncondition. 1:" + redoCounter.ToString();
-                    redoCounter++;
                     break;
                 }
             }
@@ -205,7 +210,6 @@ namespace ProjVan1
                 {
                     REDO = true;
                     MSG += "\ncondition. 2:" + redoCounter.ToString();
-                    redoCounter++;
                     break;
                 }
                 double ArBB = Rhino.Geometry.AreaMassProperties.Compute(crv).Area; // area of bounding box
@@ -215,7 +219,6 @@ namespace ProjVan1
                 {
                     REDO = true;
                     MSG += "\ncondition. 3:" + redoCounter.ToString();
-                    redoCounter++;
                     break;
                 }
             }
