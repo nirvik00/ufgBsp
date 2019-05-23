@@ -42,15 +42,18 @@ namespace ProjVan1
 
         public void RUN_BSP_ALG()
         {
+            Curve[] arr = FCURVE.ToArray();
+            FCURVE = new List<Curve>();
+
             //run the bsp algorithm
             Curve crv = SiteCrv.DuplicateCurve();
             recSplit(crv, 0);
 
             // RECURSIVELY optimize the parcel generation strategy
             redoCounter++;
-            FCURVE = new List<Curve>();
+            
             bool t = PostProcess(); 
-            if (t == true && redoCounter < 10) { RUN_BSP_ALG(); }
+            if (t == true && redoCounter < 1000) { RUN_BSP_ALG(); }
         }
 
         public List<Curve> GetBspResults() { return FCURVE; }
