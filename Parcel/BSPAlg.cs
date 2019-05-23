@@ -16,6 +16,7 @@ namespace ProjVan1
         List<Line> partitionLines = new List<Line>();
         Curve SiteCrv;
         Random rnd = new Random();
+
         public BSPAlg(Curve crv)
         {
             SiteCrv = crv;
@@ -155,6 +156,29 @@ namespace ProjVan1
             return pts;
         }
 
-        public void postProcess() { }
+        public void postProcess() {
+            bool REDO = false;
+            double ar = 0.0;
+            for (int i = 0; i < FCURVE.Count; i++)
+            {
+                try
+                {
+                    ar += Rhino.Geometry.AreaMassProperties.Compute(FCURVE[i]).Area;
+                }
+                catch (Exception) { }
+            }
+            double meanAr = ar / FCURVE.Count();
+            double minArPer = 0.2 * meanAr;
+            int j = 0;
+            for(int i=0; i<FCURVE.Count; i++)
+            {
+                double Ar = Rhino.Geometry.AreaMassProperties.Compute(FCURVE[i]).Area;
+                if (Ar < minArPer)
+                {
+                    REDO = true;
+                    break;
+                }
+            }
+        }
     }
 }
